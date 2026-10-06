@@ -1,0 +1,33 @@
+{
+  "echo": {
+    "path": "C:\\Program Files\\Meta Horizon\\Software\\Software\\ready-at-dawn-echo-arena",
+    "exeSha256": "3DAE0CDAB2EB298F9B04FC6BAAC83F8DD304A8F1D9FEA057AB30438FE271DF9A",
+    "loaderSha256": "0933F75CD7A652AEA28F72E64F9B71A96675E40C9E078A492D5307A0F02F694C"
+  },
+  "minecraftServers": ["47.184.31.187:25565"],
+  "fixedCoordinates": "-512 64 -128 0.5295090079307556 -0.1538393348455429 -0.8342383503913879",
+  "downloads": {
+    "prism": {
+      "url": "https://github.com/PrismLauncher/PrismLauncher/releases/download/11.1.1/PrismLauncher-Windows-MSVC-Portable-11.1.1.zip",
+      "sha256": "AB35A770FB06D89D2CCC098079DB5DB329FB4E68F42B72BABD8B095EFDE3D2D7"
+    },
+    "java": {
+      "url": "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12.1%2B1/OpenJDK21U-jre_x64_windows_hotspot_21.0.12.1_1.zip",
+      "sha256": "D35F31E712F0FCF6AC5A093EDC90204FBFF22F720BA3950BD09D331D5E621636"
+    },
+    "python": {
+      "url": "https://www.python.org/ftp/python/3.14.7/python-3.14.7-embed-amd64.zip",
+      "sha256": "D297E5FF019966817AD8502465176139F2D3D840FA4ED84B13BED399A6AB1F15"
+    },
+    "fabricApi": {
+      "url": "https://cdn.modrinth.com/data/P7dR8mSH/versions/9xIK4e8l/fabric-api-0.116.6%2B1.21.1.jar",
+      "sha256": "CC531256ECCE945B65B179BCEDC45CA40B69D7364B95448D255270BB6FCCAAC8",
+      "file": "fabric-api.jar"
+    },
+    "vivecraft": {
+      "url": "https://github.com/Vivecraft/VivecraftMod/releases/download/1.21.1-1.3.15/vivecraft-1.21.1-1.3.15-fabric.jar",
+      "sha256": "E11245D26B3839031685168C0FC242625AAC69024D9D47797F79F19494EB7088",
+      "file": "vivecraft-1.21.1-1.3.15-fabric.jar"
+    }
+  }
+}
