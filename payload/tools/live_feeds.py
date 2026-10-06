@@ -26,6 +26,8 @@ LOCAL = Path(os.environ.get('LOCALAPPDATA', str(ROOT/'runtime')))/'EchoCraft'
 HEAD_FILE = LOCAL/'echo-head.bin'
 STREAM_DIR = LOCAL/'world-stream'
 HEAD_MAGIC = 0x48484345
+HANDS_FILE = LOCAL/'echo-hands.bin'  # local avatar hands: the plugin measures avatar hand -> controller from them
+HANDS_MAGIC = 0x4e484345
 
 
 def atomic_bytes(path, data):
@@ -83,6 +85,16 @@ def head_packet(seq, player):
     return struct.pack('<IIQd15d', HEAD_MAGIC, 1, seq, time.time()*1000, *values)
 
 
+def hands_packet(seq, player):
+    """Local lhand/rhand as the API reports them (position + left/up/forward = the hand rotation's X/Y/Z columns), with the
+    player's velocity so the plugin only calibrates while still."""
+    values = [v for key in ('lhand', 'rhand') for part in ('pos', 'left', 'up', 'forward') for v in player[key][part]]
+    values += player.get('velocity', [0, 0, 0])
+    if len(values) != 27 or not all(isinstance(v, (int, float)) and math.isfinite(v) for v in values):
+        raise ValueError('Malformed hand pose')
+    return struct.pack('<IIQd27d', HANDS_MAGIC, 1, seq, time.time()*1000, *values)
+
+
 def minecraft_look(forward):
     x, y, z = forward; length = math.sqrt(x*x+y*y+z*z) or 1
     x, y, z = x/length, y/length, z/length
@@ -115,6 +127,8 @@ class EchoHeadFeed(Feed):
                 player = local_player(session) if session.get('err_code', 0) == 0 else None
                 if player:
                     self.seq += 1; atomic_bytes(HEAD_FILE, head_packet(self.seq, player))
+                    try: atomic_bytes(HANDS_FILE, hands_packet(self.seq, player))
+                    except (KeyError, TypeError, ValueError): pass  # hands are optional; the head feed must keep going
                     with self.lock: self.latest = (time.monotonic(), player['head']); self.blocking = bool(player.get('blocking'))
                     self.status = 'publishing'
                 else: self.status = 'not-in-a-match'
