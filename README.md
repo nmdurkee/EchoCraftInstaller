@@ -17,7 +17,9 @@ Play real Minecraft inside **Echo VR**: fly it like Echo, play it like Vivecraft
 
 ## Install
 
-1. Download this repository (**Code ▸ Download ZIP**) and unzip it anywhere.
+1. Download **`EchoCraftInstaller-<version>.zip`** from the
+   [latest release](https://github.com/nmdurkee/EchoCraftInstaller/releases/latest) and unzip it anywhere
+   (right-click ▸ Extract All; don't run it from inside the zip).
 2. Close Echo VR, the Meta Horizon app, and any Minecraft launcher.
 3. Double-click **`Install-EchoCraft.cmd`** and accept the administrator prompt (Echo lives under Program Files).
 4. Follow the window. Near the end, **Prism Launcher** opens:
