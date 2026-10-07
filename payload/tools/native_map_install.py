@@ -12,6 +12,7 @@ import subprocess
 import uuid
 from echo_package import Package,DATA,MANIFEST
 from native_map_package import sha
+from echo_path import echo_game
 
 ROOT=Path(__file__).resolve().parents[1]
 
@@ -155,7 +156,7 @@ def main():
     if not release.get('readyForTerrainTest') or not release.get('testOnly'):raise ValueError('No verified terrain test release')
     for folder in ('package-plan','native-server'):
         if sha((base/folder/'report.json').read_bytes())!=release['reportHashes'][folder]:raise ValueError('Release plans changed; rebuild release')
-    targets=[(Path(r'C:\Program Files\Meta Horizon\Software\Software\ready-at-dawn-echo-arena'),base/'package-plan'),
+    targets=[(echo_game(),base/'package-plan'),
              (ROOT/'EchoVR - SERVER/ready-at-dawn-echo-arena',base/'native-server')]
     if args.check:
         for game,plan in targets:prepare(game,plan)

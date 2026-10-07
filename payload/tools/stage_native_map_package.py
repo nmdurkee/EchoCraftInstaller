@@ -3,12 +3,13 @@ import json
 from pathlib import Path
 from native_map_target import LEVELS, LEVEL_NAME, baseline_package
 from native_map_package import append_plan, sha
+from echo_path import echo_game
 
 ROOT=Path(__file__).resolve().parents[1]
 
 
 def main():
-    game=Path(r'C:\Program Files\Meta Horizon\Software\Software\ready-at-dawn-echo-arena')
+    game=echo_game()
     package=baseline_package(game); source=ROOT/'runtime/world-replacement'
     changes=[]; reports=[]
     for folder in ('native-collision','native-mesh'):

@@ -14,12 +14,13 @@ from native_world_environment import suppress_volume_lights,daylight_shell,hide_
 from native_world_layers import composite_layers
 from native_world_cutout import cutout_plants
 from scene_geometry import Alignment
+from echo_path import echo_game
 
 ROOT=Path(__file__).resolve().parents[1]
 
 
 def main():
-    package=baseline_package(r'C:\Program Files\Meta Horizon\Software\Software\ready-at-dawn-echo-arena')
+    package=baseline_package(echo_game())
     source=ROOT/'runtime/world-replacement/world-input.json'
     world=json.loads(source.read_text())
     atlas=(source.parent/'atlas.png').read_bytes()

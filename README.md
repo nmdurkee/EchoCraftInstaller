@@ -9,8 +9,9 @@ Play real Minecraft inside **Echo VR**: fly it like Echo, play it like Vivecraft
 ## What you need first
 
 - **Windows 10/11** and a PC VR headset that already runs Echo VR.
-- **Community Echo VR working.** You must already be able to play Echo online (Echo installed at the default Meta
-  location, with the community plugin loader `bin\win10\dbgcore.dll`). The installer does not set up Echo itself.
+- **Community Echo VR working.** You must already be able to play Echo online (with the community plugin loader
+  `bin\win10\dbgcore.dll`). The installer does not set up Echo itself. Echo can be anywhere: if it is not at the
+  default Meta location, the installer asks you to paste the path to your Echo folder.
 - **Minecraft Java Edition** on a Microsoft account.
 - About **as much free disk space as your Echo folder** (the installer keeps a full backup copy) plus ~1 GB.
 - An internet connection during install.
@@ -21,7 +22,10 @@ Play real Minecraft inside **Echo VR**: fly it like Echo, play it like Vivecraft
    [latest release](https://github.com/nmdurkee/EchoCraftInstaller/releases/latest) and unzip it anywhere
    (right-click ▸ Extract All; don't run it from inside the zip).
 2. Close Echo VR, the Meta Horizon app, and any Minecraft launcher.
-3. Double-click **`Install-EchoCraft.cmd`** and accept the administrator prompt (Echo lives under Program Files).
+3. Double-click **`Install-EchoCraft.cmd`** and accept the administrator prompt (Echo usually lives under Program Files).
+   If Echo is not at `C:\Program Files\Meta Horizon\Software\Software\ready-at-dawn-echo-arena`, paste the path to
+   your Echo folder when asked (the folder that contains `bin\win10\echovr.exe`; open it in File Explorer, click the
+   address bar and copy it). The installer remembers it for reinstalls and uninstall.
 4. Follow the window. Near the end, **Prism Launcher** opens:
    1. Click the account button (top right) ▸ **Manage Accounts** ▸ **Add Microsoft** and sign in.
    2. Select the **EchoCraft** instance and click **Launch**. The first launch downloads Minecraft. When you reach
@@ -32,7 +36,7 @@ Play real Minecraft inside **Echo VR**: fly it like Echo, play it like Vivecraft
 
 | Step | Details |
 |---|---|
-| Checks Echo | Verifies `echovr.exe` is the final Echo VR client and that the community plugin loader is present (warns if your loader version differs from the tested one). |
+| Checks Echo | Finds Echo (default Meta location, the folder you chose last time, or a path you paste), then verifies `echovr.exe` is the final Echo VR client and that the community plugin loader is present (warns if your loader version differs from the tested one). |
 | Backs up Echo | Renames `ready-at-dawn-echo-arena` to **`ready-at-dawn-echo-arena (original_backup)`**, then copies it back to the original name. EchoCraft only ever modifies the copy. |
 | Downloads | [Prism Launcher](https://prismlauncher.org/) 11.1.1 (portable), [Eclipse Temurin](https://adoptium.net/) Java 21, [Python](https://www.python.org/) 3.14 (embeddable), [Fabric API](https://modrinth.com/mod/fabric-api) and [Vivecraft](https://github.com/Vivecraft/VivecraftMod) 1.21.1-1.3.15, from their official sources. Each file is checked against a pinned SHA-256 (`installer.json`). |
 | Installs EchoCraft | Into `%LOCALAPPDATA%\EchoCraft\app`: the EchoCraft mod, Minecraft 1.21.1 + Fabric instance, and the Python helpers that link Echo and Minecraft. |
@@ -60,6 +64,7 @@ To **reinstall or update**, run `Install-EchoCraft.cmd` again. It rebuilds the c
 
 | Problem | What to do |
 |---|---|
+| "Echo VR was not found" | Paste the path to your Echo folder when asked: the one that contains `bin\win10\echovr.exe` (usually named `ready-at-dawn-echo-arena`). |
 | "Could not rename the Echo folder" | Close the Meta Horizon app, Echo, and any file explorer window inside the Echo folder, then try again. |
 | "not the Echo build EchoCraft was made for" | EchoCraft only supports the final Echo VR client. |
 | "No plugin loader" | Set up community Echo VR first so you can play online. |

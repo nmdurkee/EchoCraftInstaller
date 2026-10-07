@@ -12,9 +12,10 @@ import hashlib
 import json
 from pathlib import Path
 import sys
+from echo_path import echo_game
 
 ROOT = Path(__file__).resolve().parents[1]
-GAME = Path(r'C:\Program Files\Meta Horizon\Software\Software\ready-at-dawn-echo-arena')
+GAME = echo_game()
 BASE = ROOT/'runtime/world-replacement'
 ATLAS_SIZE = (1024, 512)
 

@@ -7,6 +7,7 @@ import struct
 from echo_package import Package
 from native_world_collision import replace_physics, replace_bvh, replace_material_map, decode_bvh, body_layout
 from native_map_target import LEVELS, EMPTY_LEVEL, LEVEL_NAME, baseline_package
+from echo_path import echo_game
 
 ROOT=Path(__file__).resolve().parents[1]
 
@@ -59,7 +60,7 @@ def build(game, source, output):
 
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--game',type=Path,default=Path(r'C:\Program Files\Meta Horizon\Software\Software\ready-at-dawn-echo-arena'))
+    p.add_argument('--game',type=Path,default=echo_game())
     p.add_argument('--source',type=Path,default=ROOT/'runtime/world-replacement/world-input.json')
     p.add_argument('--output',type=Path,default=ROOT/'runtime/world-replacement/native-collision')
     a=p.parse_args(); build(a.game,a.source,a.output)

@@ -14,7 +14,7 @@ What it does, in order:
 Uninstall: Uninstall-EchoCraft.cmd (deletes the modified copy and renames the backup back).
 #>
 [CmdletBinding()]
-param([switch]$Uninstall, [string]$UserData)
+param([switch]$Uninstall, [string]$UserData, [string]$EchoPath)
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 
@@ -31,6 +31,7 @@ if (-not $admin) {
     # Run elevated in its own window and keep it open at the end so messages can be read.
     $quote = { param($s) "'" + $s.Replace("'", "''") + "'" }
     $call = "& $(& $quote $PSCommandPath) -UserData $(& $quote $UserData)"
+    if ($EchoPath) { $call += " -EchoPath $(& $quote $EchoPath)" }
     if ($Uninstall) { $call += ' -Uninstall' }
     $call += "; `$code = `$LASTEXITCODE; Read-Host 'Press Enter to close this window'; exit `$code"
     $arguments = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', $call)
@@ -41,11 +42,53 @@ if (-not $admin) {
 
 $here = $PSScriptRoot
 $config = Get-Content -LiteralPath (Join-Path $here 'installer.json') -Raw | ConvertFrom-Json
-$echo = $config.echo.path
-$backupName = (Split-Path $echo -Leaf) + ' (original_backup)'
-$backup = Join-Path (Split-Path $echo -Parent) $backupName
 $local = Join-Path $UserData 'EchoCraft'
 $app = Join-Path $local 'app'
+$savedEchoPath = Join-Path $local 'echo-path.txt'   # also read by EchoCraft's Python tools
+
+# ---- Find Echo: -EchoPath, else the folder chosen at the last install, else the default Meta location, else ask. ----
+function Get-BackupPath([string]$path) { Join-Path (Split-Path $path -Parent) ((Split-Path $path -Leaf) + ' (original_backup)') }
+function Test-EchoFolder([string]$path) {
+    # Echo is in the folder itself, or in its backup after an earlier EchoCraft install.
+    (Test-Path -LiteralPath (Join-Path $path 'bin\win10\echovr.exe')) -or (Test-Path -LiteralPath (Join-Path (Get-BackupPath $path) 'bin\win10\echovr.exe'))
+}
+function Resolve-EchoFolder([string]$path) {
+    # Accept the Echo folder, its bin\win10 folder or echovr.exe itself, with or without quotes.
+    $path = $path.Trim().Trim('"', "'").Trim()
+    if (-not $path) { return $null }
+    try { $path = [IO.Path]::GetFullPath($path) } catch { return $null }
+    if ([IO.Path]::GetPathRoot($path) -eq $path) { return $null }
+    $path = $path.TrimEnd('\', '/')
+    if ((Split-Path $path -Leaf) -eq 'echovr.exe') { $path = Split-Path $path -Parent }
+    if ($path -match '\\bin\\win10$') { $path = Split-Path (Split-Path $path -Parent) -Parent }
+    $path = $path -replace ' \(original_backup\)$', ''
+    if (-not $path -or [IO.Path]::GetPathRoot($path) -eq $path) { return $null }
+    return $path
+}
+$candidates = if ($EchoPath) { @($EchoPath) } else {
+    @($(if (Test-Path -LiteralPath $savedEchoPath) { Get-Content -LiteralPath $savedEchoPath -Raw }), $config.echo.path)
+}
+$echo = $null
+foreach ($candidate in $candidates) {
+    if (-not $candidate) { continue }
+    $resolved = Resolve-EchoFolder $candidate
+    if ($resolved -and (Test-EchoFolder $resolved)) { $echo = $resolved; break }
+}
+if (-not $echo) {
+    Write-Host ''
+    Write-Host "Echo VR was not found at $(if ($EchoPath) { $EchoPath } else { $config.echo.path })." -ForegroundColor Yellow
+    Info 'Paste the path to your Echo VR folder: the one that contains bin\win10\echovr.exe'
+    Info '(usually named ready-at-dawn-echo-arena). Tip: open it in File Explorer, click the address bar, copy.'
+}
+while (-not $echo) {
+    $answer = Read-Host '    Echo folder (or press Enter to cancel)'
+    if (-not $answer -or -not $answer.Trim()) { Write-Host 'Cancelled. Nothing was changed.'; exit 1 }
+    $resolved = Resolve-EchoFolder $answer
+    if ($resolved -and (Test-EchoFolder $resolved)) { $echo = $resolved }
+    else { Warn "No bin\win10\echovr.exe found there ($answer). Check the path and try again." }
+}
+$backupName = (Split-Path $echo -Leaf) + ' (original_backup)'
+$backup = Get-BackupPath $echo
 
 function Assert-Closed {
     $running = @(Get-Process -Name echovr, javaw, java, prismlauncher -ErrorAction SilentlyContinue |
@@ -62,7 +105,7 @@ function Copy-EchoFromBackup {
 function Remove-EchoCopy {
     # Only ever delete the working copy, and only while the untouched backup is intact next to it.
     if (-not (Test-Path -LiteralPath (Join-Path $backup 'bin\win10\echovr.exe'))) { throw 'The backup is missing echovr.exe; refusing to delete the working copy.' }
-    if ([IO.Path]::GetFullPath($echo) -ne [IO.Path]::GetFullPath($config.echo.path)) { throw 'Unexpected Echo path.' }
+    if (-not $echo -or [IO.Path]::GetPathRoot($echo) -eq [IO.Path]::GetFullPath($echo)) { throw 'Unexpected Echo path.' }
     if (Test-Path -LiteralPath $echo) { Remove-Item -LiteralPath $echo -Recurse -Force }
 }
 
@@ -91,7 +134,7 @@ Assert-Closed
 $installedBefore = Test-Path -LiteralPath $backup
 $source = if ($installedBefore) { $backup } else { $echo }
 $exe = Join-Path $source 'bin\win10\echovr.exe'
-if (-not (Test-Path -LiteralPath $exe)) { throw "Echo VR was not found at $source. EchoCraft needs Echo installed at the default Meta location." }
+if (-not (Test-Path -LiteralPath $exe)) { throw "Echo VR was not found at $source." }
 if ((Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash -ne $config.echo.exeSha256) { throw 'Your echovr.exe is not the Echo build EchoCraft was made for (the final Echo VR client).' }
 $loader = Join-Path $source 'bin\win10\dbgcore.dll'
 if (-not (Test-Path -LiteralPath $loader)) { throw 'No plugin loader (bin\win10\dbgcore.dll) in your Echo folder. Set up community Echo VR first (you must be able to play Echo online), then run this again.' }
@@ -99,7 +142,9 @@ if ((Get-FileHash -LiteralPath $loader -Algorithm SHA256).Hash -ne $config.echo.
     Warn 'Your Echo plugin loader (dbgcore.dll) is a different version than the one EchoCraft was tested with. EchoCraft may not load.'
     if (-not (Ask 'Continue anyway?')) { exit 1 }
 }
-Info 'Echo VR found and recognised.'
+Info "Echo VR found and recognised: $echo"
+New-Item -ItemType Directory -Force -Path $local | Out-Null
+WriteText $savedEchoPath $echo
 
 # ================================================= 2. Backup + copy ===============================================
 Step 'Backing up Echo'
