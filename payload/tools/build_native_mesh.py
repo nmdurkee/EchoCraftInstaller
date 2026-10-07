@@ -43,9 +43,14 @@ def main():
     bound={struct.unpack_from('<Q',descriptor,off)[0] for off in (1504,1520)}
     if len(bound)!=1: raise ValueError('Static carrier has mixed material bindings')
     if bound!={int(material,16)}:
-        # Some community Echo builds bind the carrier to another material. Use theirs and carry on.
-        material=f'{bound.pop():016x}'
-        print(f'WARNING: this Echo build binds the arena carrier to material {material}, not the one EchoCraft was tested with. Trying anyway.',file=sys.stderr)
+        # Some community Echo builds bind the carrier to another material. Rebind it to the tested one, as on the
+        # reference install, so the atlas binding below edits the same material there.
+        try: package.get('CGMaterialResource',material)
+        except KeyError: raise ValueError(f'This Echo build has neither the tested carrier material {material} nor a compatible one') from None
+        print(f'WARNING: this Echo build binds the arena carrier to material {bound.pop():016x}; rebinding it to {material} as on the tested Echo. Trying anyway.',file=sys.stderr)
+        descriptor=bytearray(descriptor)
+        for off in (1504,1520): struct.pack_into('<Q',descriptor,off,int(material,16))
+        descriptor=bytes(descriptor)
     changes=[(r,descriptor),(gr,gpu)]
     empty_model=0xb56a33f06ee43b41
     empty_resource=package.get('CGInstancedModelResource',empty_model)
