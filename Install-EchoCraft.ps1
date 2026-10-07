@@ -135,7 +135,12 @@ $installedBefore = Test-Path -LiteralPath $backup
 $source = if ($installedBefore) { $backup } else { $echo }
 $exe = Join-Path $source 'bin\win10\echovr.exe'
 if (-not (Test-Path -LiteralPath $exe)) { throw "Echo VR was not found at $source." }
-if ((Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash -ne $config.echo.exeSha256) { throw 'Your echovr.exe is not the Echo build EchoCraft was made for (the final Echo VR client).' }
+$exeHash = (Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash
+if ($exeHash -ne $config.echo.exeSha256) {
+    Warn 'Your echovr.exe is not the exact Echo build EchoCraft was tested with (it may be patched by your community'
+    Warn 'Echo setup). EchoCraft may not load, or Echo may crash. Uninstall-EchoCraft.cmd puts your original back.'
+    if (-not (Ask 'Continue anyway?')) { exit 1 }
+}
 $loader = Join-Path $source 'bin\win10\dbgcore.dll'
 if (-not (Test-Path -LiteralPath $loader)) { throw 'No plugin loader (bin\win10\dbgcore.dll) in your Echo folder. Set up community Echo VR first (you must be able to play Echo online), then run this again.' }
 if ((Get-FileHash -LiteralPath $loader -Algorithm SHA256).Hash -ne $config.echo.loaderSha256) {
@@ -145,6 +150,7 @@ if ((Get-FileHash -LiteralPath $loader -Algorithm SHA256).Hash -ne $config.echo.
 Info "Echo VR found and recognised: $echo"
 New-Item -ItemType Directory -Force -Path $local | Out-Null
 WriteText $savedEchoPath $echo
+WriteText (Join-Path $local 'echo-exe-sha256.txt') $exeHash   # the build the player accepted, for EchoCraft's engine host
 
 # ================================================= 2. Backup + copy ===============================================
 Step 'Backing up Echo'
@@ -169,7 +175,7 @@ if ($installedBefore) {
         throw
     }
 }
-if ((Get-FileHash -LiteralPath (Join-Path $echo 'bin\win10\echovr.exe') -Algorithm SHA256).Hash -ne $config.echo.exeSha256) { throw 'The Echo copy did not verify.' }
+if ((Get-FileHash -LiteralPath (Join-Path $echo 'bin\win10\echovr.exe') -Algorithm SHA256).Hash -ne $exeHash) { throw 'The Echo copy did not verify.' }
 Info "Working copy ready: $echo"
 
 # ================================================= 3. Downloads ===================================================

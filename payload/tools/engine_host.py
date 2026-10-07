@@ -13,7 +13,7 @@ from bridge_cli import Bridge, DEFAULT_CONFIG, ROOT
 from live_world_feed import atomic_json
 from native_world_material import read_png
 from native_world_layers import png_rgba
-from echo_path import echo_game
+from echo_path import echo_game, accepted_exe_hashes
 
 OUTPUT = ROOT/'runtime/client-observation'
 kernel = ctypes.WinDLL('kernel32',use_last_error=True)
@@ -109,7 +109,7 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--echo-pid',required=True,type=int)
     args=parser.parse_args();handle,exe=process(args.echo_pid)
     expected=echo_game()/'bin/win10/echovr.exe'
-    if exe!=expected or hashlib.sha256(exe.read_bytes()).hexdigest()!='3dae0cdab2eb298f9b04fc6baac83f8dd304a8f1d9fea057ab30438fe271df9a':
+    if exe!=expected or hashlib.sha256(exe.read_bytes()).hexdigest() not in accepted_exe_hashes():
         kernel.CloseHandle(handle);raise ValueError('Not the verified Echo client')
     mutex=kernel.CreateMutexW(None,False,'Local\\EchoCraftEngineHost')
     if not mutex:raise ValueError('Cannot create engine lock')
