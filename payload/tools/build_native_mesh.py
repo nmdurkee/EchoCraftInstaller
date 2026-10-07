@@ -3,6 +3,7 @@ import hashlib
 import json
 from pathlib import Path
 import struct
+import sys
 from echo_package import Package,resource_type
 from native_world_mesh import compile_mesh
 from native_world_material import resident_texture, bind_atlas, validate_texture_parts
@@ -39,9 +40,12 @@ def main():
     r=package.get('CGInstancedModelResource',carrier)
     gr=package.get('CGInstancedModelResource',carrier,gpu=True)
     descriptor,gpu=compile_mesh(package.read(package.get('CGInstancedModelResource','9eafa673d5f7a3b8')),batches)
-    for off in (1504,1520):
-        if struct.unpack_from('<Q',descriptor,off)[0]!=int(material,16):
-            raise ValueError('Static carrier material binding changed')
+    bound={struct.unpack_from('<Q',descriptor,off)[0] for off in (1504,1520)}
+    if len(bound)!=1: raise ValueError('Static carrier has mixed material bindings')
+    if bound!={int(material,16)}:
+        # Some community Echo builds bind the carrier to another material. Use theirs and carry on.
+        material=f'{bound.pop():016x}'
+        print(f'WARNING: this Echo build binds the arena carrier to material {material}, not the one EchoCraft was tested with. Trying anyway.',file=sys.stderr)
     changes=[(r,descriptor),(gr,gpu)]
     empty_model=0xb56a33f06ee43b41
     empty_resource=package.get('CGInstancedModelResource',empty_model)
